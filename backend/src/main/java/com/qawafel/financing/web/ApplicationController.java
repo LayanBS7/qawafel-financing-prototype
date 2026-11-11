@@ -7,7 +7,11 @@ import com.qawafel.financing.service.ApplicationService;
 import com.qawafel.financing.web.Dtos.*;
 import jakarta.validation.Valid;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -57,6 +61,15 @@ public class ApplicationController {
                     requestedAmount != null ? requestedAmount : new BigDecimal("3000000"));
             return service.analyze(app.getId());
         }
+    }
+
+    /** Download the sample file, to see what the expected format looks like. */
+    @GetMapping("/sample/file")
+    public ResponseEntity<Resource> sampleFile() {
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"invoices_12m.xlsx\"")
+                .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                .body(new ClassPathResource(SAMPLE_FILE));
     }
 
     @GetMapping
