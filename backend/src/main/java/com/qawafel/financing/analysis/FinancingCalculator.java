@@ -79,6 +79,10 @@ public class FinancingCalculator {
                         "Rounded down to the nearest SAR 10,000."));
 
         List<String> conditions = new ArrayList<>();
+        if (requested != null && requested > limit) {
+            conditions.add(String.format("Reduce the amount to SAR %,.0f: the SAR %,.0f requested is more than the "
+                    + "eligible receivables can support.", limit, requested));
+        }
         if (!ineligible.isEmpty()) {
             conditions.add("Exclude invoices to " + names(ineligible, byKey) + " from the financed pool.");
         }

@@ -70,9 +70,29 @@ public class AnalysisService {
                 collections, customers, quality));
         Double requested = app.getRequestedAmount() == null ? null : d(app.getRequestedAmount());
         FinancingEstimate financing = financingCalculator.estimate(sales, customers, asOf, requested, quality);
+        risk = withRequestCheck(risk, financing);
 
         return new AnalysisResult(toApplication(app), headline, monthly, concentration, collections,
                 customers, risk, financing, quality);
+    }
+
+    /**
+     * The score describes the business, so it doesn't depend on the amount asked for. The recommendation
+     * does: if the request is above what the receivables can support, say so and offer the supported amount.
+     */
+    static RiskAssessment withRequestCheck(RiskAssessment risk, FinancingEstimate financing) {
+        Double requested = financing.requestedAmount();
+        if (requested == null || requested <= financing.suggestedLimit() || risk.band().equals("Weak")) {
+            return risk;
+        }
+        String recommendation = risk.recommendation() + " The request of " + sar(requested)
+                + " is above the suggested limit: offer " + sar(financing.suggestedLimit()) + " instead.";
+        return new RiskAssessment(risk.score(), risk.maxScore(), risk.band(), recommendation, risk.factors(),
+                risk.strengths(), risk.concerns());
+    }
+
+    private static String sar(double v) {
+        return String.format("SAR %,.0f", v);
     }
 
     // ------------------------------------------------------------------ revenue

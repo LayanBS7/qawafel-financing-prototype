@@ -103,6 +103,20 @@ class AnalysisServiceTest {
         assertThat(f.conditions()).anyMatch(c -> c.contains("Nakheel Corner Store"));
     }
 
+    @Test
+    void requestAboveTheLimitIsCalledOutButDoesNotChangeTheScore() {
+        var f = result.financing();
+        var bigRequest = new AnalysisResult.FinancingEstimate(f.method(), f.steps(), f.eligibleReceivables(),
+                f.advanceRate(), f.suggestedLimit(), 10_000_000.0, 37.4, f.conditions());
+        var risk = AnalysisService.withRequestCheck(result.risk(), bigRequest);
+        assertThat(risk.score()).isEqualTo(result.risk().score());
+        assertThat(risk.recommendation()).contains("above the suggested limit").contains("SAR 10,000,000");
+
+        // The sample asks for SAR 3M, which fits, so nothing is added.
+        assertThat(result.risk().recommendation()).doesNotContain("above the suggested limit");
+        assertThat(f.conditions()).noneMatch(c -> c.startsWith("Reduce the amount"));
+    }
+
     private static List<CustomerFlag> flagsOf(String name) {
         return result.customers().stream().filter(c -> c.name().equals(name)).findFirst().orElseThrow().flags();
     }

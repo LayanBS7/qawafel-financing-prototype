@@ -63,7 +63,7 @@ cd backend
 mvn test
 ```
 
-The 17 tests include running the real sample file through the whole pipeline and checking that all 32 planted
+The 18 tests include running the real sample file through the whole pipeline and checking that all 32 planted
 data errors and all 5 planted customer stories are found, with no false alarms.
 
 ## Sample data
