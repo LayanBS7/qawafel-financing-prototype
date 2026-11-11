@@ -54,7 +54,7 @@ Large retailers get longer terms because they have negotiating power, which is n
 | Story | Customer | What a good tool should notice |
 |---|---|---|
 | Anchor customer | Al-Rayyan Hypermarkets | About 24% of revenue: **concentration risk** |
-| Slowing payer | Najd Family Hyper | Pays about 25 days later from July 2026: **deteriorating collections** |
+| Slowing payer | Najd Family Hyper | Pays about 25 days later on invoices from May 2026: **deteriorating collections** |
 | Bad payer | Nakheel Corner Store | Pays about 35 days late on average, with more unpaid invoices |
 | Lost customer | Qimmat Al-Jawda Supermarket | Stops buying after May 2026: **churn** |
 | New customer | Al-Bustan Fresh | Starts buying in May 2026 |

@@ -170,7 +170,7 @@ def customer_active(story, d: date) -> bool:
 
 def days_late_for(rng, behaviour, story, invoice_date) -> int:
     mean, std, _ = behaviour
-    if story == "slowing" and invoice_date >= date(2026, 7, 1):
+    if story == "slowing" and invoice_date >= date(2026, 5, 1):
         mean += 25                            # pays noticeably slower in the last months
     return max(-5, int(rng.gauss(mean, std)))  # some pay a few days early
 
@@ -287,55 +287,61 @@ def inject_data_issues(rng: random.Random, invoices):
     """Add the kind of mess real exports contain, so the app has something to catch.
     Returns a log of exactly what was injected (kept OUT of the Excel file)."""
     log = []
-    normal = [r for r in invoices if r["status"] != "Credit Note"]
+    # Each issue goes on a different row, so the answer key maps one-to-one to what the app finds.
+    paid = [r for r in invoices if r["status"] == "Paid"]
+    picked_paid = rng.sample(paid, 6 + 6 + 5 + 4 + 3 + 3 + 3 + 2 + 4 + 2)
+    take = iter(picked_paid)
 
-    # 1. Exact duplicate rows (export / copy-paste mistake)
-    for r in rng.sample(normal, 6):
-        dup = dict(r)
-        invoices.insert(invoices.index(r) + 1, dup)
-        log.append(("Duplicate row", r["number"]))
+    def rows(n):
+        return [next(take) for _ in range(n)]
 
-    # 2. Missing customer VAT number
-    for r in rng.sample(normal, 5):
+    # 1. Missing customer VAT number
+    for r in rows(5):
         r["vat_override"] = ""
         log.append(("Missing customer VAT number", r["number"]))
 
-    # 3. VAT not equal to 15% of subtotal
-    for r in rng.sample(normal, 4):
+    # 2. VAT not equal to 15% of subtotal
+    for r in rows(4):
         r["vat"] = round(r["subtotal"] * rng.choice([0.05, 0.10, 0.0]), 2)
         r["total"] = round(r["subtotal"] + r["vat"], 2)
+        r["amount_paid"] = r["total"]
         log.append(("VAT is not 15%", r["number"]))
 
-    # 4. Total does not equal subtotal + VAT (typo)
-    for r in rng.sample(normal, 3):
+    # 3. Total does not equal subtotal + VAT (typo)
+    for r in rows(3):
         r["total"] = round(r["total"] + rng.choice([1000, -500, 90]), 2)
         log.append(("Total != subtotal + VAT", r["number"]))
 
-    # 5. Paid date before invoice date
-    paid = [r for r in normal if r["status"] == "Paid"]
-    for r in rng.sample(paid, 3):
+    # 4. Paid date before invoice date
+    for r in rows(3):
         r["paid_date"] = r["invoice_date"] - timedelta(days=rng.randint(5, 40))
         log.append(("Paid date before invoice date", r["number"]))
 
-    # 6. Status says Paid but no paid date / amount
-    for r in rng.sample(paid, 3):
+    # 5. Status says Paid but no paid date
+    for r in rows(3):
         r["paid_date"] = None
         log.append(("Status Paid but no paid date", r["number"]))
 
-    # 7. Date outside the 12-month window (wrong year typed)
-    for r in rng.sample(normal, 2):
+    # 6. Date outside the 12-month window (wrong year typed)
+    for r in rows(2):
         r["invoice_date"] = r["invoice_date"].replace(year=r["invoice_date"].year - 1)
         log.append(("Invoice date outside 12-month period", r["number"]))
 
-    # 8. Customer name spelled differently for the same customer
-    for r in rng.sample(normal, 4):
+    # 7. Customer name spelled differently for the same customer
+    for r in rows(4):
         r["name_override"] = r["customer"]["name"].upper() + " "
         log.append(("Customer name variant (same customer)", r["number"]))
 
-    # 9. Missing amount
-    for r in rng.sample(normal, 2):
+    # 8. Missing amount
+    for r in rows(2):
         r["subtotal"] = None
         log.append(("Missing subtotal", r["number"]))
+
+    # 9. Exact duplicate rows (export / copy-paste mistake). Done last, on untouched rows,
+    #    so the copy is truly identical to the original.
+    for r in rows(6):
+        invoices.insert(invoices.index(r) + 1, dict(r))
+        log.append(("Duplicate row", r["number"]))
 
     return log
 
