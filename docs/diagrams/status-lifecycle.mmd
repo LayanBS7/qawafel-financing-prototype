@@ -1,0 +1,19 @@
+stateDiagram-v2
+    direction LR
+    [*] --> Draft
+    Draft --> Submitted: consent + submit
+    Draft --> Withdrawn
+    Submitted --> InReview: analysed
+    InReview --> NeedsInfo: analyst asks
+    NeedsInfo --> InReview: wholesaler answers
+    InReview --> DeclinedByQawafel: analyst declines
+    InReview --> ReadyToSend: analyst recommends
+    ReadyToSend --> SentToBank: bank confirms receipt
+    SentToBank --> BankReview
+    BankReview --> NeedsInfo: bank asks
+    BankReview --> Approved
+    BankReview --> Declined
+    Approved --> [*]
+    Declined --> [*]
+    DeclinedByQawafel --> [*]
+    Withdrawn --> [*]

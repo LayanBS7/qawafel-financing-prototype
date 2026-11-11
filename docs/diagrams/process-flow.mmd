@@ -1,0 +1,40 @@
+sequenceDiagram
+    autonumber
+    actor W as Wholesaler
+    participant P as Qawafel platform
+    actor A as Qawafel analyst
+    participant G as Bank gateway
+    participant B as Bank partner
+
+    W->>P: Create application, requested amount
+    W->>P: Upload invoices (Excel) + bank statements (PDF)
+    P->>P: Store originals (hash, encrypted)<br/>Parse in background, validate
+    P-->>W: Data issues: excluded / flagged / missing months
+    opt Blocking problems
+        W->>P: Upload corrected file
+    end
+    W->>P: Consent for the named bank + submit
+    P->>P: Match paid invoices to deposits<br/>Analyse, save immutable snapshot
+    P-->>A: Application ready for review
+    A->>P: Review issues, flags, score, limit
+    alt Need more information
+        A->>P: Information request
+        P-->>W: What is needed
+        W->>P: Answer / new files (back to step 3)
+    else Decline
+        A->>P: Decision: decline + reason
+        P-->>W: Notified
+    else Recommend
+        A->>P: Decision: recommend (with conditions)
+        P->>G: Package = snapshot + original files
+        G->>B: Send (idempotency key, retries)
+        B-->>G: Received, bank reference
+        G->>B: Confirm by reading the status back
+        P-->>W: Sent to bank
+        B->>B: Credit review
+        B-->>G: Outcome (webhook or polling)
+        G->>B: Re-read status to verify (see Task 4)
+        G->>P: Verified outcome
+        P-->>A: Outcome
+        P-->>W: Approved / declined / more info needed
+    end

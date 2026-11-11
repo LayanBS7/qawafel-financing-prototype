@@ -1,0 +1,16 @@
+erDiagram
+    direction LR
+    COMPANY ||--o{ FINANCING_APPLICATION : "applies"
+    BANK_PARTNER ||--o{ FINANCING_APPLICATION : "reviews"
+    COMPANY ||--o{ CUSTOMER : "sells to"
+    COMPANY ||--o{ BANK_ACCOUNT : "owns"
+    FINANCING_APPLICATION ||--o{ DOCUMENT : "uploads"
+    DOCUMENT ||--o{ INVOICE : "parsed into"
+    DOCUMENT ||--o{ BANK_TRANSACTION : "parsed into"
+    CUSTOMER ||--o{ INVOICE : "billed on"
+    BANK_ACCOUNT ||--o{ BANK_TRANSACTION : "records"
+    INVOICE ||--o{ PAYMENT_MATCH : "paid by"
+    BANK_TRANSACTION ||--o{ PAYMENT_MATCH : "pays"
+    FINANCING_APPLICATION ||--o{ ANALYSIS_SNAPSHOT : "versions"
+    ANALYSIS_SNAPSHOT ||--o| DECISION : "basis of"
+    ANALYSIS_SNAPSHOT ||--o{ BANK_SUBMISSION : "sent as"
